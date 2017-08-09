@@ -12,7 +12,7 @@ def main():
     # Seperate out data
     grid = []
     for x in data:
-        grid.extend(list(x))
+        grid.extend((int(y) for y in list(x)))
 
     variables = []
     for x in range(81):
@@ -28,16 +28,23 @@ def main():
             # This must be a constant
             s.add(variables[x] == grid[x])
         else:
+
+            # Upper and lower bounds
+            s.add(variables[x] < 10)
+            s.add(variables[x] > 0)
+
             # Check same row
             rowstart = (x - (x % 9))
             for y in range(9):
-                s.add(variables[x] != variables[rowstart+y])
+                if (rowstart+y != x):
+                    s.add(variables[x] != variables[rowstart+y])
 
             # Check same column
             colstart = x % 9
             y = 0
-            while y < 9:
-                s.add(variables[x] != variables[colstart+y])
+            while y < 81:
+                if (colstart+y != x):
+                    s.add(variables[x] != variables[colstart+y])
                 y = y + 9
 
             # Get the top left of our current square
@@ -47,20 +54,16 @@ def main():
                 colstart = colstart + 27
 
             topleft = (colstart - 27)
-
-            s.add(variables[x] != variables[colstart])
-            s.add(variables[x] != variables[colstart+1])
-            s.add(variables[x] != variables[colstart+2])
-            s.add(variables[x] != variables[colstart+9])
-            s.add(variables[x] != variables[colstart+10])
-            s.add(variables[x] != variables[colstart+11])
-            s.add(variables[x] != variables[colstart+18])
-            s.add(variables[x] != variables[colstart+19])
-            s.add(variables[x] != variables[colstart+20])
+            updates = [topleft, topleft+1, topleft+2, topleft+9, topleft+10, topleft+11, topleft+18, topleft+19, topleft+20]
+            for y in updates:
+                if y != x:
+                    s.add(variables[x] != variables[y])
 
         x = x + 1
 
-    s.check()
+    print s.check()
+    for c in s.assertions():
+        print c
     m = s.model()
 
     print m
